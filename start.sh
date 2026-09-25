@@ -29,6 +29,10 @@ else
   ARGS+=(--spec-type draft-mtp --spec-draft-n-max 2)   # embedded MTP fallback
 fi
 MMP=$(find_file "$MMPROJ_FILE") && ARGS+=(--mmproj "$MMP")
+# KV-cache precision: q8_0 halves KV memory (near-lossless) -> ~2x longer context on 24 GB cards
+[ -n "${KV_TYPE:-}" ] && ARGS+=(--cache-type-k "$KV_TYPE" --cache-type-v "$KV_TYPE")
+# agent loops resend a growing prompt: reuse the already-computed prefix instead of recomputing it
+ARGS+=(--cache-reuse "${CACHE_REUSE:-256}")
 [ -n "${API_KEY:-}" ] && ARGS+=(--api-key "$API_KEY")
 [ -n "${EXTRA_ARGS:-}" ] && ARGS+=($EXTRA_ARGS)
 echo "llama-server ${ARGS[*]}"
