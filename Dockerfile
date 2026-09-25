@@ -9,10 +9,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends git cmake build
 WORKDIR /src
 RUN git clone https://github.com/ggml-org/llama.cpp && cd llama.cpp && git checkout ${LLAMA_COMMIT} \
  && curl -fL -o fastmtp.patch "${PATCH_URL}" && git apply --check fastmtp.patch && git apply fastmtp.patch
+# GGML_NATIVE=OFF + CPU_ALL_VARIANTS: portable CPU code picked at runtime (a -march=native build crashes
+# with "Illegal instruction" on hosts whose CPU differs from the CI runner)
 RUN cd llama.cpp && cmake -S . -B build -DGGML_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES="${CUDA_ARCHS}" \
+      -DGGML_NATIVE=OFF -DGGML_BACKEND_DL=ON -DGGML_CPU_ALL_VARIANTS=ON \
       -DLLAMA_CURL=ON -DLLAMA_BUILD_TESTS=OFF -DLLAMA_BUILD_EXAMPLES=OFF -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_EXE_LINKER_FLAGS=-Wl,--allow-shlib-undefined \
- && cmake --build build --config Release -j"$(nproc)" --target llama-server \
+ && cmake --build build --config Release -j"$(nproc)" \
  && mkdir -p /out && cp build/bin/llama-server /out/ && find build -name "*.so*" -exec cp -P {} /out/ \;
 
 FROM nvidia/cuda:${CUDA_VERSION}-runtime-ubuntu22.04
