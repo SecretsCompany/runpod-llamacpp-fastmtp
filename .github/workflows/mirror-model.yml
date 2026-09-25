@@ -1,0 +1,31 @@
+name: mirror-model-to-hf
+# Copies only the needed GGUF files from the upstream repo into our own HF repo,
+# so RunPod's free model cache downloads ~20 GB instead of the whole ~188 GB repo.
+on:
+  workflow_dispatch:
+    inputs:
+      quant: { description: "Quant file suffix", default: "Q4_K_P" }
+      target: { description: "Target HF repo", default: "" }
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    env:
+      SRC: HauhauCS/Qwen3.8-27B-Uncensored-HauhauCS-Aggressive-MTP-GGUF
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      HF_HUB_ENABLE_HF_TRANSFER: "1"
+    steps:
+      - name: Free disk space
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache && df -h /
+      - run: pip install -U "huggingface_hub[cli,hf_transfer]"
+      - name: Download selected files
+        run: |
+          P=Qwen3.8-27B-Uncensored-HauhauCS-Aggressive
+          hf download "$SRC" --local-dir m \
+            --include "$P-${{ inputs.quant }}.gguf" "$P-FastMTP-32K.gguf" "mmproj-$P-BF16.gguf" README.md SHA256SUMS
+          cd m && grep -E "${{ inputs.quant }}.gguf|FastMTP-32K.gguf|mmproj" SHA256SUMS | sha256sum -c - && ls -la
+      - name: Upload to our repo
+        run: |
+          T="${{ inputs.target }}"; [ -z "$T" ] && T="$(hf auth whoami | head -1 | awk '{print $NF}')/Qwen3.8-27B-Aggressive-MTP-${{ inputs.quant }}"
+          hf repo create "$T" --repo-type model --exist-ok
+          hf upload "$T" m . --repo-type model --commit-message "mirror ${{ inputs.quant }} + FastMTP + mmproj from $SRC"
+          echo "TARGET=$T" >> $GITHUB_STEP_SUMMARY
