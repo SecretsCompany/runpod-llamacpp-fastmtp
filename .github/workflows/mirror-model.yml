@@ -12,16 +12,15 @@ jobs:
     env:
       SRC: HauhauCS/Qwen3.8-27B-Uncensored-HauhauCS-Aggressive-MTP-GGUF
       HF_TOKEN: ${{ secrets.HF_TOKEN }}
-      HF_HUB_ENABLE_HF_TRANSFER: "1"
     steps:
       - name: Free disk space
         run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache && df -h /
-      - run: pip install -U "huggingface_hub[cli,hf_transfer]"
+      - run: pip install -U huggingface_hub
       - name: Download selected files
         run: |
           P=Qwen3.8-27B-Uncensored-HauhauCS-Aggressive
-          hf download "$SRC" --local-dir m \
-            --include "$P-${{ inputs.quant }}.gguf" "$P-FastMTP-32K.gguf" "mmproj-$P-BF16.gguf" README.md SHA256SUMS
+          # hf CLI 2.x: list filenames positionally (--include takes a single pattern)
+          hf download "$SRC" "$P-${{ inputs.quant }}.gguf" "$P-FastMTP-32K.gguf" "mmproj-$P-BF16.gguf" README.md SHA256SUMS --local-dir m
           cd m && grep -E "${{ inputs.quant }}.gguf|FastMTP-32K.gguf|mmproj" SHA256SUMS | sha256sum -c - && ls -la
       - name: Upload to our repo
         run: |
