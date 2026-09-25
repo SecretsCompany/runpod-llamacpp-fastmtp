@@ -25,7 +25,7 @@ jobs:
           cd m && grep -E "${{ inputs.quant }}.gguf|FastMTP-32K.gguf|mmproj" SHA256SUMS | sha256sum -c - && ls -la
       - name: Upload to our repo
         run: |
-          T="${{ inputs.target }}"; [ -z "$T" ] && T="$(hf auth whoami | head -1 | awk '{print $NF}')/Qwen3.8-27B-Aggressive-MTP-${{ inputs.quant }}"
-          hf repo create "$T" --repo-type model --exist-ok
+          T="${{ inputs.target }}"; [ -z "$T" ] && T="secretscompany/Qwen3.8-27B-Aggressive-MTP-${{ inputs.quant }}"
+          hf repo create "$T" --repo-type model --private --exist-ok
           hf upload "$T" m . --repo-type model --commit-message "mirror ${{ inputs.quant }} + FastMTP + mmproj from $SRC"
           echo "TARGET=$T" >> $GITHUB_STEP_SUMMARY
