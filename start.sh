@@ -7,6 +7,7 @@ DRAFT_FILE="${DRAFT_FILE:-Qwen3.8-27B-Uncensored-HauhauCS-Aggressive-FastMTP-32K
 MMPROJ_FILE="${MMPROJ_FILE:-mmproj-Qwen3.8-27B-Uncensored-HauhauCS-Aggressive-BF16.gguf}"
 touch /tmp/llama.starting
 python3 /app/ping.py &
+PING_PID=$!
 find_file() {  # $1 = filename; searches HF cache snapshot of $REPO, then /runpod-volume
   local base="/runpod-volume/huggingface-cache/hub/models--${REPO//\//--}"
   local ref; ref=$(cat "$base/refs/main" 2>/dev/null)
@@ -15,7 +16,7 @@ find_file() {  # $1 = filename; searches HF cache snapshot of $REPO, then /runpo
   done
   return 1
 }
-MODEL=$(find_file "$QUANT_FILE") || { echo "FATAL: $QUANT_FILE not found"; ls -R /runpod-volume 2>/dev/null | head -50; rm -f /tmp/llama.starting; sleep 600; exit 1; }
+MODEL=$(find_file "$QUANT_FILE") || { echo "FATAL: $QUANT_FILE not found"; ls -R /runpod-volume 2>/dev/null | head -50; rm -f /tmp/llama.starting; sleep 60; kill "$PING_PID" 2>/dev/null; exit 1; }
 ARGS=(--model "$MODEL" --host 0.0.0.0 --port "$PORT"
   --ctx-size "${CTX_SIZE:-131072}" --parallel "${PARALLEL:-1}"
   --n-gpu-layers all --split-mode none --flash-attn on --no-mmap
@@ -36,4 +37,11 @@ ARGS+=(--cache-reuse "${CACHE_REUSE:-256}")
 [ -n "${API_KEY:-}" ] && ARGS+=(--api-key "$API_KEY")
 [ -n "${EXTRA_ARGS:-}" ] && ARGS+=($EXTRA_ARGS)
 echo "llama-server ${ARGS[*]}"
-exec /app/llama-server "${ARGS[@]}"
+# no exec: when llama-server exits (crash/OOM) drop the "starting" flag and stop the container,
+# otherwise ping.py would keep answering 204 "initializing" and RunPod would bill a dead worker
+/app/llama-server "${ARGS[@]}"
+rc=$?
+echo "llama-server exited with code $rc"
+rm -f /tmp/llama.starting
+kill "$PING_PID" 2>/dev/null
+exit "$rc"
