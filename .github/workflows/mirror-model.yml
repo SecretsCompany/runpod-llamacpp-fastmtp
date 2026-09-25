@@ -25,6 +25,5 @@ jobs:
       - name: Upload to our repo
         run: |
           T="${{ inputs.target }}"; [ -z "$T" ] && T="secretscompany/Qwen3.8-27B-Aggressive-MTP-${{ inputs.quant }}"
-          hf repo create "$T" --repo-type model --private --exist-ok
-          hf upload "$T" m . --repo-type model --commit-message "mirror ${{ inputs.quant }} + FastMTP + mmproj from $SRC"
+          hf upload "$T" m . --repo-type model --private --commit-message "mirror ${{ inputs.quant }} + FastMTP + mmproj from $SRC"
           echo "TARGET=$T" >> $GITHUB_STEP_SUMMARY
