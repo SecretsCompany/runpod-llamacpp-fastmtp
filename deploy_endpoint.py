@@ -9,7 +9,7 @@ inp = {"name": "qwen38-27b-agent", "templateId": ids["template_id"],
        "workersMin": 0, "workersMax": 1, "idleTimeout": 600,          # 1 warm worker keeps agent prefix cache; off after 10 min idle
        "flashBootType": "FLASHBOOT", "scalerType": "REQUEST_COUNT", "scalerValue": 1,
        "type": "LB", "minCudaVersion": "12.4",
-       "modelReferences": ["https://huggingface.co/secretscompany/Qwen3.8-27B-Aggressive-MTP-Q4_K_P:main"]}
+       "modelReferences": ["https://huggingface.co/secretscompany/Qwen3.8-27B-Standartwitework-MTP-Q4_K_P:main"]}
 r = requests.post("https://api.runpod.io/graphql?api_key=" + K, json={"query": q, "variables": {"input": inp}}, timeout=60).json()
 print(json.dumps(r, ensure_ascii=False, indent=1))
 ep = (r.get("data") or {}).get("saveEndpoint")

@@ -1,10 +1,10 @@
 #!/bin/bash
 # Resolves GGUF files from RunPod model cache (or network volume) and starts llama-server.
 set -u
-REPO="${MODEL_REPO:-secretscompany/Qwen3.8-27B-Aggressive-MTP-Q4_K_P}"
-QUANT_FILE="${QUANT_FILE:-Qwen3.8-27B-Uncensored-HauhauCS-Aggressive-Q4_K_P.gguf}"
-DRAFT_FILE="${DRAFT_FILE:-Qwen3.8-27B-Uncensored-HauhauCS-Aggressive-FastMTP-32K.gguf}"
-MMPROJ_FILE="${MMPROJ_FILE:-mmproj-Qwen3.8-27B-Uncensored-HauhauCS-Aggressive-BF16.gguf}"
+REPO="${MODEL_REPO:-secretscompany/Qwen3.8-27B-Standartwitework-MTP-Q4_K_P}"
+QUANT_FILE="${QUANT_FILE:-Qwen3.8-27B-Standartwitework-MTP-Q4_K_P-Q4_K_P.gguf}"
+DRAFT_FILE="${DRAFT_FILE:-Qwen3.8-27B-Standartwitework-MTP-Q4_K_P-FastMTP-32K.gguf}"
+MMPROJ_FILE="${MMPROJ_FILE:-mmproj-Qwen3.8-27B-Standartwitework-MTP-Q4_K_P-BF16.gguf}"
 touch /tmp/llama.starting
 python3 /app/ping.py &
 PING_PID=$!
