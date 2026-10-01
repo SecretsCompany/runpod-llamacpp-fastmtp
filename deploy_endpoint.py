@@ -16,3 +16,8 @@ ep = (r.get("data") or {}).get("saveEndpoint")
 if ep:
     ids["endpoint_id"] = ep["id"]; json.dump(ids, open("/home/claude/.runpod_ids", "w"))
     print(f"OpenAI base URL: https://{ep['id']}.api.runpod.ai/v1  (Authorization: Bearer <RUNPOD_API_KEY>)")
+    import re  # прописать адрес эндпоинта в шлюз llm_service и перезапустить его
+    envp = "/home/claude/llm_service/.env"; t = open(envp).read()
+    open(envp, "w").write(re.sub(r"(?m)^UPSTREAM_URL=.*$", f"UPSTREAM_URL=https://{ep['id']}.api.runpod.ai/v1", t))
+    import subprocess; subprocess.run(["systemctl", "restart", "llm-gateway"], check=False)
+    print("llm_service/.env: UPSTREAM_URL обновлён, llm-gateway перезапущен")
