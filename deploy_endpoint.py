@@ -6,7 +6,7 @@ ids = json.load(open("/home/claude/.runpod_ids"))
 q = """mutation S($input: EndpointInput!){ saveEndpoint(input:$input){ id name gpuIds workersMin workersMax idleTimeout type modelReferences templateId } }"""
 inp = {"name": "qwen38-27b-agent", "templateId": ids["template_id"],
        "gpuIds": "ADA_24,AMPERE_24,-NVIDIA L4", "gpuCount": 1,       # 4090, then 3090/A5000; L4 excluded (slow memory)
-       "workersMin": 0, "workersMax": 1, "idleTimeout": 600,          # 1 warm worker keeps agent prefix cache; off after 10 min idle
+       "workersMin": 0, "workersMax": 1, "idleTimeout": 120,          # worker stays warm 2 min after the last request (idle time is billed)
        "flashBootType": "FLASHBOOT", "scalerType": "REQUEST_COUNT", "scalerValue": 1,
        "type": "LB", "minCudaVersion": "12.4",
        "modelReferences": ["https://huggingface.co/secretscompany/Qwen3.8-27B-Standartwitework-MTP-Q4_K_P:main"]}
